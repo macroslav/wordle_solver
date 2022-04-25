@@ -1,25 +1,28 @@
+import logging
+
+from data_transformer import DataTransformer
 from data_loader import DictionaryLoader
-# from data_transformer import DataTransformer
-from config import HEADERS
-import requests
-from bs4 import BeautifulSoup
+from solver import WordleSolver
 
-from parser import ParserOzhegov
-
-DEBUG = 1
+DEBUG = 0
+LOGGING_LEVEL = logging.DEBUG
 
 
 def main():
-    # parser = ParserOzhegov()
-    # parser.parse_all_words()
-    # parser.save_dictionary()
-    loader = DictionaryLoader(mode=DEBUG)
-    dictionary = loader.load_from_file('data/dictionary.yaml')
-    letter_a = dictionary['а']
-    letter_a_5 = [word for word in letter_a if len(word) == 5]
-    print(letter_a_5)
-    print(len(letter_a_5))
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(level=LOGGING_LEVEL, format='%(asctime)s %(levelname)s: %(message)s')
 
+    loader = DictionaryLoader(mode=DEBUG)
+    dictionary = loader.load()
+    logger.debug('Dictionary is loaded')
+
+    transformer = DataTransformer(dictionary)
+    list_of_words = transformer.load_result()
+    logger.debug(f"Five letter words are loaded")
+
+    solver = WordleSolver(list_of_words)
+    logger.debug('Solver is created and started')
+    solver.start_solver()
 
 # with open('data/site.html', 'w') as site:
 #     site.write(response.text)

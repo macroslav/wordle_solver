@@ -1,13 +1,18 @@
+import logging
 import requests
 from bs4 import BeautifulSoup
 import yaml
 
 from config import HEADERS, DICTIONARY_OZHEGOV_URL, ALPHABET
 
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+
 
 class ParserOzhegov:
-    def __init__(self):
+    def __init__(self, path):
         self.dictionary = dict()
+        self.dictionary_path = path
 
     def parse_one_letter(self, letter):
         new_page_exists = True
@@ -15,7 +20,7 @@ class ParserOzhegov:
         all_words = []
 
         while new_page_exists:
-            print(f"PAGE #{page}")
+            logger.info(f"Page #{page}")
             response = requests.get(f"{DICTIONARY_OZHEGOV_URL}page={page}&letter={letter}", headers=HEADERS)
             if response.status_code == 404:
                 new_page_exists = False
@@ -33,11 +38,11 @@ class ParserOzhegov:
         return all_words
 
     def parse_all_words(self):
-        for letter in ALPHABET[:3]:
-            print(f"LETTER '{letter.upper()}' IS GOING")
+        for letter in ALPHABET:
+            logger.info(f"LETTER '{letter.upper()}' IS GOING")
             self.dictionary[letter] = self.parse_one_letter(letter)
 
     def save_dictionary(self):
-        with open('data/dictionary.yaml', 'w', encoding='utf-8') as result_file:
-            data = yaml.dump(self.dictionary, result_file, sort_keys=False,
-                             default_flow_style=False, allow_unicode=True)
+        with open(self.dictionary_path, 'w', encoding='utf-8') as result_file:
+            yaml.dump(self.dictionary, result_file, sort_keys=False,
+                      default_flow_style=False, allow_unicode=True)
